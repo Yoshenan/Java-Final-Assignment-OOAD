@@ -1,4 +1,5 @@
 
+
 public class Fine {
  public  Vehicle vehicle;
  public  Parking parking;
@@ -8,31 +9,36 @@ public class Fine {
     public Fine(){
      this.vehicle = new Vehicle();
      this.parking = new Parking();
-     vehicle.inputPlateNumber();
-     vehicle.calculateDuration();
-
-
+     this.isParked = true;
     }
 
-    public class fineType{
-        double  finePayType(double totalRate, double duration){
-         if(duration > 24.00 || isParked == false){
-           System.out.println("Your no plate has fine : " + vehicle.plateNumber);
+    public Fine(Vehicle vehicle , Parking parking , boolean isParked){
+      this.vehicle = vehicle;
+      this.parking = parking;
+      this.isParked = isParked;
+    }
+
+    public static  class FineType{
+        public double  finePayType(double totalRate, Vehicle vehicle, boolean  isParked){
+         if(vehicle.getDuration() > 24.0|| isParked == false){
+           System.out.println("Your no plate has fine : " + vehicle.getPlateNumber());
         }
         return totalRate;
     }
    
-    class fixed extends fineType{//fixed fine type
+    public static class fixed extends FineType{//fixed fine type
         @Override
-        double finePayType(double totalRate , double duration){
+        public double finePayType(double totalRate , Vehicle vehicle , boolean isParked){
+           super.finePayType(totalRate, vehicle, isParked);
            return  totalRate + 50.00;
         }
     }
 
-    class progessive extends fineType{//progessive fine type
+    public static class progessive extends FineType{//progessive fine type
         @Override
-        double finePayType(double totalRate , double duration){
-            
+        public double finePayType(double totalRate , Vehicle vehicle ,boolean  isParked){
+            super.finePayType(totalRate, vehicle, isParked);
+            double duration = vehicle.getDuration();
             if(duration== 24.00){
                return totalRate + 50;
             }else if(duration> 24 && duration<48){
@@ -45,9 +51,11 @@ public class Fine {
         }
     }
 
-    class hourly extends fineType{//hourly fine type 
+    public static class hourly extends FineType{//hourly fine type 
         @Override
-        double finePayType(double totalRate , double duration){
+        public double finePayType(double totalRate ,Vehicle vehicle , boolean isParked){
+            super.finePayType(totalRate, vehicle, isParked);
+            double duration = vehicle.getDuration();
             return totalRate + (duration - 24) * 20;
         }
     }

@@ -1,12 +1,11 @@
 
-
-public class payment {
+public class Payment {
     Parking parking;
     Vehicle vehicle;
     private String paymentMethod;
     //private final String id;
 
-    public payment(){
+    public Payment(){
         this.parking = new Parking();
         this.vehicle = new Vehicle();
         vehicle.inputPlateNumber();
