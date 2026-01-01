@@ -1,23 +1,32 @@
-public class Parking extends Vehicle{
+public class Parking {
     String parkingType;
     double[] parkingFare;
     double totalRate;
-    boolean isHavingCard;
     int status = 0;
     int floor;
     int rows;
     String id;
     public static Parking[][][] parkingStructure;
-    
-   
-      public Parking(String parkingType, double[] parkingFare , int status , int floor ,  int rows , String id){
+    Vehicle vehicle;
+
+      public Parking(String parkingType, double[] parkingFare , int status , int floor ,  int rows ){
         this.parkingType = parkingType;
         this.parkingFare = parkingFare;
         this.status = status;
         this.floor = floor;
         this.rows = rows;
         this.id = "F" + floor + "R" + rows + "S" + parkingType;
+
       }
+        public Parking(){
+           this("Regular" , new double[]{0.0},0 , 0 , 0);
+           }
+
+        public String  getId(){
+          return id;
+        }
+
+     
       public static boolean parkingSpot(String parkingType , double[] parkingFare){
          String[] types = {"Compact" , "Regular" , "Handicapped" , "Reserved"};
          final double[] ratesPerHour  = {2.0 , 5.0 , 2.0 , 10.0};
@@ -32,10 +41,12 @@ public class Parking extends Vehicle{
          }
          return false;
       }
+
+  
       public void parkingCalculation(){
-         if(parkingType.equals("Handicapped") && isHavingCard==true){
+         if(parkingType.equals("Handicapped") && vehicle.isHavingCard==true){
            this.totalRate = 0.0;
-         }else{this.totalRate = this.parkingFare[0] * this.duration;} 
+         }else{this.totalRate = this.parkingFare[0] * vehicle.duration;} 
       }
 
       public void statusCheck(){
@@ -55,14 +66,14 @@ public class Parking extends Vehicle{
 
               double[] fare = new double[1];
                 parkingSpot(type, fare);
-
-                // s+1 because we're using 1-based indexing in the park array
-                parkingStructure[f][r][s+1] = new Parking(type , fare , 0 , f, r,id);
+                parkingStructure[f][r][s+1] = new Parking(type , fare , 0 , f, r);
             }
             }
           }
-          System.out.println("Parking lot initialized: " + floor + " floors, "+ rows + " rows, " + types.length + " spots per row");
+          
       }
+
+   
 
     }
 

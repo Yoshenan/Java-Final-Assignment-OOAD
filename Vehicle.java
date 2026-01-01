@@ -1,39 +1,60 @@
 
+
+
 import java.util.Scanner;
 
-public class Vehicle  {
+public class Vehicle{
     
     String plateNumber;
     double entryTime;
     double exitTime;
     double duration;
-    boolean isHavingCard;
+    boolean isHavingCard = true; //handicapped vehicle
     String vehicleType;
     double height;
     int wheels;
+    Scanner sc = new Scanner(System.in);
     
     
     
        public Vehicle(){
-          inputPlateNumber();
-          calculateDuration();
-          vehicleType();
+          
        }
 
-       private void vehicleType(){
+       public Vehicle(String plateNumber, boolean isHavingCard , double height , int wheels){
+            this.plateNumber = plateNumber;
+            this.isHavingCard = isHavingCard;
+            this.height = height;
+            this.wheels = wheels;
+            
+
+       }
+
+       public double getDuration() {
+          return duration;
+        }
+
+       public String getPlateNumber() {
+         return plateNumber;
+        }
+
+      public String getVehicleType(){
+        return vehicleType;
+      }
+
+       public void vehicleType(){
              
            String[] type = {"Car" , "Motorbike" ,"SUV", "Handicapped Vehicle"};
-
-
-            if(isHavingCard==true){vehicleType = type[3];}
+            if(isHavingCard){vehicleType = type[3];}
             else if(height>1.8){ vehicleType = type[2];}
             else if(wheels == 2 ){ vehicleType = type[1];}
-            else{vehicleType = type[0];}     
+            else{vehicleType = type[0];}    
+
 }
 
 
-       private void calculateDuration() {
-          Scanner sc = new Scanner(System.in);
+       public  void calculateDuration() {
+         
           System.out.println("Enter entry time: ");
           entryTime = sc.nextInt();
           System.out.println("Enter exit time: ");
@@ -42,8 +63,8 @@ public class Vehicle  {
           
           duration = Math.ceil(exitTime - entryTime);
        }
-       private void inputPlateNumber(){
-           Scanner sc = new Scanner(System.in);
+       public void inputPlateNumber(){
+           
            System.out.println("Enter NoPlate: ");
            plateNumber = sc.nextLine().toUpperCase();
 
