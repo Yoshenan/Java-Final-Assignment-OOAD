@@ -1,3 +1,5 @@
+
+
 public class Parking {
     String parkingType;
     double[] parkingFare;
