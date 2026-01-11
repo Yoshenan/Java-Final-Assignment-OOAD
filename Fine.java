@@ -1,5 +1,4 @@
 
-
 public class Fine {
  public  Vehicle vehicle;
  public  Parking parking;
