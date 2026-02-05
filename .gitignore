@@ -1,9 +1,0 @@
-
-*.class
-*.log
-*.jar
-*.war
-*.iml
-.idea/
-out/
-bin/
