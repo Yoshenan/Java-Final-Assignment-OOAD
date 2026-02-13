@@ -1,7 +1,6 @@
 
 public class Parking {
     public String parkingType;
-    private double hourlyRate;
     private String id;
     public double totalRate; 
 
@@ -21,14 +20,28 @@ public class Parking {
     public Parking(String parkingType, String id) {
         this.parkingType = parkingType;
         this.id = id;
-        this.hourlyRate = getParkingRate(parkingType);
     }
 
     public Parking() {}
 
 
     public String getId() { return id; }
-    public double getHourlyRate() { return hourlyRate; }
+
+        public double getHourlyRate() {
+        if (this.parkingType == null) return 0.0;
+
+        if (parkingType.equalsIgnoreCase("Compact")) {
+            return 2.50;
+        } else if (parkingType.equalsIgnoreCase("Regular")) {
+            return 5.00;
+        } else if (parkingType.equalsIgnoreCase("Handicapped")) {
+            return 2.00;
+        } else if (parkingType.equalsIgnoreCase("Reserved")) {
+            return 10.00;
+        } else {
+            return 0.00;
+        }
+    }
 
     public static int getCount(String type) {
         return FileManager.countByType(type);

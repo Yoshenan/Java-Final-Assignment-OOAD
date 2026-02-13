@@ -8,39 +8,61 @@ public class GUI extends JFrame {
     final private JTabbedPane tabs = new JTabbedPane();
     private static Fine.FineType currentScheme = new Fine.Fixed();
     final private String loadedData = "";
+    final private JTextField userId = new JTextField(5);
 
     public GUI() {
-        setTitle("Parking System");
-        setSize(800, 500);
-        setDefaultCloseOperation(3);
-        
-        JPanel login = new JPanel(new GridBagLayout());
-        String[] roles = {"Admin", "Entry/Exit", "Report"};
-        JComboBox<String> rb = new JComboBox<>(roles);
-        JButton lb = new JButton("Login");
-
-        lb.addActionListener(e -> {
-            String role = (String) rb.getSelectedItem();
-            switch (role) {
-                case "Admin" -> {
-                    main.add(createAdminTab(), "A");
-                    cl.show(main, "A");
-                }
-                case "Report" -> {
-                    main.add(createReportingTab(), "R"); // Add the new tab to CardLayout
-                    cl.show(main, "R");
-                }
+    setTitle("Parking System");
+    setSize(800, 500);
+    setDefaultCloseOperation(3);
+    
+    JPanel login = new JPanel();
+    login.setLayout(new BoxLayout(login, BoxLayout.Y_AXIS));
+    login.setBorder(BorderFactory.createEmptyBorder(150, 300, 150, 300));
+    
+    String[] roles = {"Admin", "Entry/Exit", "Report"};
+    JComboBox<String> rb = new JComboBox<>(roles);
+    rb.setMaximumSize(new Dimension(200, 30));
+    rb.setAlignmentX(Component.CENTER_ALIGNMENT);
+    
+    JLabel userLabel = new JLabel("User ID:");
+    userLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+    
+    JTextField userId = new JTextField();
+    userId.setMaximumSize(new Dimension(200, 30));
+    userId.setAlignmentX(Component.CENTER_ALIGNMENT);
+    
+    JButton lb = new JButton("Login");
+    lb.setMaximumSize(new Dimension(200, 35));
+    lb.setAlignmentX(Component.CENTER_ALIGNMENT);
+    lb.addActionListener(e -> {
+        try {
+            String inputId = userId.getText().trim();
+            if (inputId.isEmpty()) throw new IllegalArgumentException("User ID cannot be empty");
+            String UserId = inputId.toUpperCase();
+            switch (UserId) {
+                case "A01" -> { main.add(createAdminTab(), "A"); cl.show(main, "A"); }
+                case "R01" -> { main.add(createReportingTab(), "R"); cl.show(main, "R"); }
                 default -> cl.show(main, "H");
             }
-        });
-
-        login.add(rb); login.add(lb);
-        main.add(login, "L");
-        main.add(createHub(), "H");
-        add(main);
-        setLocationRelativeTo(null);
-        setVisible(true);
-    }
+        } catch (IllegalArgumentException ex) {
+            JOptionPane.showMessageDialog(this, ex.getMessage(), "Input Error", JOptionPane.WARNING_MESSAGE);
+        }
+    });
+    
+    login.add(rb);
+    login.add(Box.createRigidArea(new Dimension(0, 10)));
+    login.add(userLabel);
+    login.add(Box.createRigidArea(new Dimension(0, 5)));
+    login.add(userId);
+    login.add(Box.createRigidArea(new Dimension(0, 10)));
+    login.add(lb);
+    
+    main.add(login, "L");
+    main.add(createHub(), "H");
+    add(main);
+    setLocationRelativeTo(null);
+    setVisible(true);
+}
 
     private JPanel createHub() {
         JPanel p = new JPanel(new BorderLayout());
@@ -66,6 +88,15 @@ public class GUI extends JFrame {
             l.setForeground(Color.WHITE);
             l.setFont(new Font("Arial", 1, 22));
             l.setBorder(BorderFactory.createLineBorder(Color.DARK_GRAY));
+            l.addMouseListener(new java.awt.event.MouseAdapter() {
+                @Override
+                public void mouseClicked(java.awt.event.MouseEvent e ){
+                    DefaultTableModel model = FileManager.getFilteredParkDetails(typeName);
+                    JTable table = new JTable(model);
+                    JScrollPane scroll = new JScrollPane(table);
+                    JOptionPane.showMessageDialog(null, scroll, typeName + " Details", JOptionPane.PLAIN_MESSAGE);
+                }
+            });
             p.add(l);
         }
         return p;
@@ -136,7 +167,8 @@ public class GUI extends JFrame {
         String data = FileManager.loadDetails(plate); 
         if (data == null) return;
         String[] d = data.split(","); 
-        String category = d[3]; // d[3] is the Category (Regular, Compact, etc.)
+        String category = d[3]; 
+        p.parking.parkingType = category;
         p.vehicle.plateNumber = plate;
         p.vehicle.calculateDuration(Double.parseDouble(d[1]), Double.parseDouble(time));
         double baseRate = p.vehicle.duration * Parking.getParkingRate(category);
@@ -162,7 +194,7 @@ public class GUI extends JFrame {
             String finalStatus = isFined  ? "PAID(FINED)" : "PAID";
             FileManager.updateFees(plate, p.parking.totalRate, finalStatus);
             tabs.setComponentAt(0, createSpaceTab());
-            p.paymentReceipt();
+            JOptionPane.showMessageDialog(this, p.paymentReceipt(), "Receipt", JOptionPane.PLAIN_MESSAGE);
         }
     } catch (HeadlessException | NumberFormatException e) { 
         JOptionPane.showMessageDialog(this, "Payment Error: " + e.getMessage()); 
@@ -170,68 +202,69 @@ public class GUI extends JFrame {
 }
 
     private JPanel createAdminTab() {
-        JPanel panel = new JPanel(new FlowLayout());
-        JButton viewDetBtn = new JButton("View Master Records");
-        JButton btnTotal = new JButton("Check Revenue");
-        JButton  ParkDet = new JButton("Parked Vehicles");
-        JLabel  label = new JLabel("Select Fine Scheme");
-        String[] schemes = {"Fixed" , "Progressive " , "Hourly"};
-        JComboBox  <String> schemeSelect = new JComboBox<>(schemes);
-
-        schemeSelect.addActionListener(e -> {
-    int choice = schemeSelect.getSelectedIndex();
-    switch (choice) {
-        case 0 -> {
-            currentScheme = new Fine.Fixed();
-            JOptionPane.showMessageDialog(this, "Fine System updated to Fixed");
-                }
-        case 1 -> {
-            currentScheme = new Fine.Progressive();
-            JOptionPane.showMessageDialog(this, "Fine System updated to Progressive");
-                }
-        case 2 -> {
-            currentScheme = new Fine.Hourly();
-            JOptionPane.showMessageDialog(this, "Fine System updated to Hourly");
-                }
-    }
-});
-        JButton back = new JButton("Logout");
-        viewDetBtn.addActionListener(c -> {
-            JOptionPane.showMessageDialog(null, new JScrollPane(new JTable(FileManager.getUnifiedView())), "Master Records", 1);
-        });
-
-        btnTotal.addActionListener(e -> {
-    double[] rev = FileManager.getTotalRevenue(); 
-    double grandTotal = rev[0] + rev[1];
-            JOptionPane.showMessageDialog(this, "Total Revenue Collected: RM " + String.format("%.2f", grandTotal));
-        });
-
-         ParkDet.addActionListener(e -> {
-            JFrame frame = new JFrame("Parking Space Monitoring");
-    frame.setSize(400, 300);
-    frame.add(createSpaceTab()); 
-    frame.setLocationRelativeTo(null);
-    frame.setVisible(true);
-        });
-
-        back.addActionListener(e -> cl.show(main, "L"));
-        panel.add(label);
-        panel.add(schemeSelect);
-        panel.add(viewDetBtn);
-        panel.add(ParkDet);
-        panel.add(btnTotal);
-        panel.add(back);
-        return panel;
-    }
+    JPanel panel = new JPanel(new BorderLayout(10, 10));
+    panel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+    
+    // Header
+    JPanel header = new JPanel();
+    JLabel label = new JLabel("Fine Scheme:");
+    label.setFont(new Font("Arial", Font.BOLD, 14));
+    String[] schemes = {"Fixed", "Progressive", "Hourly"};
+    JComboBox<String> schemeSelect = new JComboBox<>(schemes);
+    schemeSelect.addActionListener(e -> {
+        int choice = schemeSelect.getSelectedIndex();
+        switch (choice) {
+            case 0 -> { currentScheme = new Fine.Fixed(); JOptionPane.showMessageDialog(this, "Fine System updated to Fixed"); }
+            case 1 -> { currentScheme = new Fine.Progressive(); JOptionPane.showMessageDialog(this, "Fine System updated to Progressive"); }
+            case 2 -> { currentScheme = new Fine.Hourly(); JOptionPane.showMessageDialog(this, "Fine System updated to Hourly"); }
+        }
+    });
+    header.add(label);
+    header.add(schemeSelect);
+    
+    // Buttons
+    JPanel buttonPanel = new JPanel(new GridLayout(2, 2, 15, 15));
+    buttonPanel.setBorder(BorderFactory.createEmptyBorder(20, 50, 20, 50));
+    
+    JButton viewDetBtn = new JButton("View Master Records");
+    JButton btnTotal = new JButton("Check Revenue");
+    JButton ParkDet = new JButton("Parked Vehicles");
+    JButton back = new JButton("Logout");
+    
+    viewDetBtn.addActionListener(c -> JOptionPane.showMessageDialog(null, 
+        new JScrollPane(new JTable(FileManager.getUnifiedView())), "Master Records", 1));
+    
+    btnTotal.addActionListener(e -> {
+        double[] rev = FileManager.getTotalRevenue();
+        JOptionPane.showMessageDialog(this, "Total Revenue: RM " + String.format("%.2f", rev[0] + rev[1]));
+    });
+    
+    ParkDet.addActionListener(e -> {
+        JFrame frame = new JFrame("Parking Space Monitoring");
+        frame.setSize(400, 300);
+        frame.add(createSpaceTab());
+        frame.setLocationRelativeTo(null);
+        frame.setVisible(true);
+    });
+    
+    back.addActionListener(e -> cl.show(main, "L"));
+    
+    buttonPanel.add(viewDetBtn);
+    buttonPanel.add(btnTotal);
+    buttonPanel.add(ParkDet);
+    buttonPanel.add(back);
+    
+    panel.add(header, BorderLayout.NORTH);
+    panel.add(buttonPanel, BorderLayout.CENTER);
+    return panel;
+}
    public JPanel createReportingTab() {
     JPanel mainPanel = new JPanel(new BorderLayout(10, 10));
     mainPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-    
-    // Changed GridLayout to 1 row, 3 columns to show the breakdown
+
     JPanel header = new JPanel(new GridLayout(1, 3, 10, 10));
     header.setBorder(BorderFactory.createTitledBorder("System Statistics"));
 
-    // Fetch the array from your updated method
     double[] revData = FileManager.getTotalRevenue();
     double standard = revData[0];
     double fines = revData[1];
@@ -251,7 +284,6 @@ public class GUI extends JFrame {
     header.add(fineLabel);
     header.add(totalLabel);
 
-    // --- Rest of your table and button logic remains the same ---
     String[] columns = {"Plate", "Entry", "Type", "SpotID","Level", "Duration", "Fine Status"};
     Object[][] data = FileManager.getReportData();
     
@@ -282,7 +314,6 @@ public class GUI extends JFrame {
         header.setBorder(BorderFactory.createTitledBorder("Past Transactions (Paid)"));
     });
 
-    // ... (rest of your parkDet and logout listeners)
     parkDet.addActionListener(e -> {
         JFrame frame = new JFrame("Live Parking Space Monitoring");
         frame.setSize(600, 400); 
