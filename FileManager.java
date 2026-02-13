@@ -120,24 +120,16 @@ public static DefaultTableModel getUnifiedView() {
                     String lvl = d[2];
                     String type = d[3];
                     String slot = d[4];
-
                     double duration = currentTime - timeIn;
                     String fineStatus = (duration > 24) ? "OVERSTAY" : "NO FINES";
-
                     reportList.add(new Object[]{
                         plate, timeIn,lvl, type, slot, 
                         String.format("%.1f hrs", duration), 
                         fineStatus
                     });
-                } catch (NumberFormatException nfe) {
-                }
-            }
-        }
-    } catch (Exception e) {
-        System.err.println("Error generating report: " + e.getMessage());
-    }
-    return reportList.toArray(Object[][]::new);
-}
+                } catch (NumberFormatException nfe) {}}}
+    } catch (Exception e) {System.err.println("Error generating report: " + e.getMessage());
+    }return reportList.toArray(Object[][]::new);}
 
 public static double[] getTotalRevenue() {
     double FineTotal = 0;
@@ -146,9 +138,7 @@ public static double[] getTotalRevenue() {
         String line;
         while ((line = read.readLine()) != null) {
             if (line.trim().isEmpty()) continue;
-
             String[] d = line.split(",");
-
             if (d.length >= 8 && d[7].contains("FINED")) {
                 FineTotal += Double.parseDouble(d[6]);
             }
@@ -156,12 +146,9 @@ public static double[] getTotalRevenue() {
                 try {
                     StandardTotal += Double.parseDouble(d[6]);
                 } catch (NumberFormatException e) {
-                }
-            }
-        }
-    } catch (Exception e) {
-    }
-    return new double[]{StandardTotal, FineTotal};
+                }}}
+    } catch (Exception e) {}
+return new double[]{StandardTotal, FineTotal};
 }
 
 public static Object[][] getHistoryData() {
@@ -172,22 +159,37 @@ public static Object[][] getHistoryData() {
             if (line.trim().isEmpty()) continue;
             
             String[] d = line.split(",");
-            // Check for PAID status and ensure index 7 exists
             if (d.length >= 8 && d[7].toUpperCase().contains("PAID")) {
                 historyList.add(new Object[]{
-                    d[0],   
-                    d[2],         // Plate
-                    d[4],  
-                    d[3],         // Slot (A01)
-                    d[5],            // Vehicle Type (Car)
-                    "RM " + d[6],    // Fee Paid (530.0)
-                    d[7]             // Final Status (PAID(FINED))
-                });
+                    d[0], d[2],d[4], d[3], d[5],"RM " + d[6],d[7]});}}
+    } catch (Exception e) {e.printStackTrace();}
+    return historyList.toArray(new Object[0][]);}
+
+
+public static DefaultTableModel getFilteredParkDetails(String filterType) {
+    String[] columns = {"Plate Number", "Entry Time", "Vehicle Type", "Spot ID", "Level"};
+    DefaultTableModel model = new DefaultTableModel(columns, 0);
+
+    try (BufferedReader read = new BufferedReader(new FileReader(FILE_PATH))) {
+        String line;
+        while ((line = read.readLine()) != null) {
+            if (line.trim().isEmpty()) continue;
+            String[] d = line.split(",");
+            if (d.length >= 6) { 
+                if (d[3].equalsIgnoreCase(filterType)) {
+                    model.addRow(new Object[]{
+                        d[0], // Plate
+                        d[1], // Time
+                        d[2], // Vehicle Type (Car/Motor)
+                        d[4], // Spot ID
+                        (d.length > 6) ? d[2] : "N/A" // Level (or use d[2] if that's where Level is)
+                    });
+                }
             }
         }
     } catch (Exception e) {
-        e.printStackTrace();
+        e.printStackTrace(); 
     }
-    return historyList.toArray(new Object[0][]);
+    return model;
 }
 }
