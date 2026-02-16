@@ -17,6 +17,19 @@ public class Parking {
         };
 }
 
+
+    public static double setTotalLots(String type) {
+    if (type == null) return 0.0;
+
+        return switch (type) {
+            case "Compact" -> 75;
+            case "Regular" -> 75;
+            case "Handicapped" -> 75;
+            case "Reserved" -> 75;
+            default -> 0.00;
+        };
+}
+
     public Parking(String parkingType, String id) {
         this.parkingType = parkingType;
         this.id = id;

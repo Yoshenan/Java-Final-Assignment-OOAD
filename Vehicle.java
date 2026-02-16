@@ -21,7 +21,7 @@ public class Vehicle {
     }
 
     public String getPlateNumber() {
-        return plateNumber;
+        return this.plateNumber;
     }
 
     public void calculateDuration(double entry, double exit) {
