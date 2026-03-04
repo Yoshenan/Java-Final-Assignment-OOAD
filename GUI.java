@@ -32,10 +32,11 @@ public class GUI extends JFrame {
             JOptionPane.showMessageDialog(this, "User ID cannot be empty", "Input Error", JOptionPane.WARNING_MESSAGE);
             return;
         }
-        String UserId = inputId.toUpperCase();
-        if (UserId.equals("A01")) { main.add(createAdminTab(), "A"); cl.show(main, "A"); }
-        else if (UserId.equals("R01")) { main.add(createReportingTab(), "R"); cl.show(main, "R"); }
-        else cl.show(main, "H");
+        String UserId = inputId.toUpperCase().trim();
+        if ("A01".equals(UserId)) { main.add(createAdminTab(), "A"); cl.show(main, "A"); }
+        else if ("R01".equals(UserId)) { main.add(createReportingTab(), "R"); cl.show(main, "R"); }
+        else if ("E01".equals(UserId)) {  cl.show(main, "H"); }
+        else JOptionPane.showMessageDialog(this, "Invalid id!");
     });
     login.add(userLabel);
     login.add(userId);
@@ -70,10 +71,10 @@ public class GUI extends JFrame {
             int available  = max -active;
             String statusText;
             if (active >= max) {
-             String availColor = "#FF4444"; // Red
+             String availColor = "#FF4444";
              statusText = "LOT FULL";
            } else {
-            String availColour = "#52D017"; // Green
+            String availColour = "#52D017"; 
             statusText = available + " FREE";
 }
             String availColor = (available <= 0) ? "#FF4444" : "#52D017";
@@ -108,8 +109,6 @@ public class GUI extends JFrame {
         JComboBox<String> SpotID = new JComboBox<>(new String[]{"A01", "A02", "A03", "A04", "A05", "B01", "B02", "B03", "B04", "B05","C01","C02","C03","C04","C05"});
         JComboBox<String> Vhcbox = new JComboBox<>(new String[]{"Car", "Motorcycle", "Suv/Truck", "Handicapped Vehicle"});
         JComboBox<String> typeBox = new JComboBox<>(new String[]{"Regular", "Reserved", "Compact", "Handicapped"});
-        String spotId = SpotID.getSelectedItem().toString();
-        String level = lvlBox.getSelectedItem().toString();
         p.add(new JLabel("Plate Number:")); p.add(f1);
         p.add(new JLabel("Date (DD/MM):")); p.add(f3);
         p.add(new JLabel(mode == 1 ? "Entry Time(24H):" : "Exit Time(24H):")); p.add(f2);
@@ -130,15 +129,27 @@ public class GUI extends JFrame {
                         JOptionPane.showMessageDialog(this,"Please Enter Details");
                         return;
                     }
-                    if (FileManager.isSpotOccupied(spotId, level)) {
-                    JOptionPane.showMessageDialog(this, "Spot " + spotId  + level + " is already occupied!", "Spot Required", JOptionPane.WARNING_MESSAGE);
+                    if(!f3.getText().matches("\\d{2}/\\d{2}")){
+                        JOptionPane.showMessageDialog(this, "Invalid Date Format! Use DD/MM (e.g. 26/02)", "Date Error", JOptionPane.WARNING_MESSAGE);
                     return;
                     }
                     double time = Double.parseDouble(f2.getText());
+                    if(time<0 || time > 23.59){
+                      JOptionPane.showMessageDialog(this, "Invalid Date Format! Use DD/MM (e.g. 26/02)", "Date Error", JOptionPane.WARNING_MESSAGE);
+                    return;
+                    }
+                    
+                    String spotId = SpotID.getSelectedItem().toString();
+                    String level = lvlBox.getSelectedItem().toString();
+                    if (FileManager.isSpotOccupied(spotId, level)) {
+                    JOptionPane.showMessageDialog(this,"Spot " + spotId + " (Level " + level + ") is already occupied!", "Spot Required", JOptionPane.WARNING_MESSAGE);
+                    return;
+                    }
+                    
                     String date = f3.getText();
                     tempvhc.setPlateNumber(f1.getText());
                     if (tempvhc.getPlateNumber().equals("INVALID")) { JOptionPane.showMessageDialog(this, "Format Error: Use 'ABC 1234'"); return; }
-                    FileManager.saveDetails(tempvhc.getPlateNumber(), time, date, (String) Vhcbox.getSelectedItem(), (String) typeBox.getSelectedItem(), (String) lvlBox.getSelectedItem(), (String) SpotID.getSelectedItem());
+                    FileManager.saveDetails(tempvhc.getPlateNumber(), time, date, (String) typeBox.getSelectedItem(), (String) Vhcbox.getSelectedItem(), (String) lvlBox.getSelectedItem(), (String) SpotID.getSelectedItem());
                     JOptionPane.showMessageDialog(this, "Saved!");
                     f1.setText(""); f2.setText(""); f3.setText("");
                 } catch (HeadlessException | NumberFormatException ex) { JOptionPane.showMessageDialog(this, "Invalid Input!"); }
@@ -173,25 +184,38 @@ public class GUI extends JFrame {
     private void handlePay(String plate, String time, String date) {
     try {
         if (plate.trim().isEmpty() || time.trim().isEmpty() || date.trim().isEmpty()) {
-        JOptionPane.showMessageDialog(this, "Missing data! Please ensure Plate, Date, and Time are filled.", "Input Error", JOptionPane.ERROR_MESSAGE);
+        JOptionPane.showMessageDialog(this, "Missing data! ", "Input Error", JOptionPane.ERROR_MESSAGE);
         return;
     }
         Payment p = new Payment();
-        String data = FileManager.loadDetails(plate); 
-        if (data == null) return;
-        String[] d = data.split(","); 
-        String entryDate = d[2].trim(); 
-        double entryTimeValue = Double.parseDouble(d[1].trim()); 
-        double exitTimeValue = Double.parseDouble(time);
-        double duration;
-        if (date.trim().equals(entryDate)) {
-            duration = exitTimeValue - entryTimeValue;
-        } else {
-            duration = (exitTimeValue + 24) - entryTimeValue;
-        }
-        p.vehicle.duration = duration;
-        p.parking.parkingType = d[3]; 
-        p.vehicle.plateNumber = plate;
+String data = FileManager.loadDetails(plate); 
+if (data == null) return;
+
+String[] d = data.split(","); 
+String entryDateStr = d[2].trim(); 
+double entryTimeValue = Double.parseDouble(d[1].trim()); 
+double exitTimeValue = Double.parseDouble(time);
+p.vehicle.plateNumber = plate;
+p.vehicle.entryTime = entryTimeValue; 
+p.vehicle.exitTime = exitTimeValue;
+p.vehicle.entryDay = entryDateStr;  
+p.vehicle.exitDay = date.trim();
+double duration;
+if (date.trim().equals(entryDateStr)) {
+    duration = exitTimeValue - entryTimeValue;
+} else {
+    int entryDay = Integer.parseInt(entryDateStr.split("/")[0]);
+    int entryMonth = Integer.parseInt(entryDateStr.split("/")[1]);
+    int exitDay = Integer.parseInt(date.trim().split("/")[0]);
+    int exitMonth = Integer.parseInt(date.trim().split("/")[1]);
+    int entryTotalDays = (entryMonth * 30) + entryDay;
+    int exitTotalDays = (exitMonth * 30) + exitDay;
+    int dayDiff = exitTotalDays - entryTotalDays;
+    duration = (exitTimeValue + (dayDiff * 24)) - entryTimeValue;
+}
+
+p.vehicle.duration = duration;
+p.parking.parkingType = d[3];
         double baseRate = p.vehicle.duration * Parking.getParkingRate(p.parking.parkingType);
         p.parking.totalRate = currentScheme.finePayType(baseRate, p.vehicle, false);
         String msg = "Plate: " + plate + "\nDuration: " + String.format("%.2f", p.vehicle.duration) + " hrs";
@@ -229,6 +253,9 @@ public class GUI extends JFrame {
     label.setFont(new Font("Arial", Font.BOLD, 14));
     String[] schemes = {"Fixed", "Progressive", "Hourly"};
     JComboBox<String> schemeSelect = new JComboBox<>(schemes);
+    if (currentScheme instanceof Fine.Progressive) schemeSelect.setSelectedIndex(1);
+    else if (currentScheme instanceof Fine.Hourly) schemeSelect.setSelectedIndex(2);
+    else if (currentScheme instanceof Fine.Fixed) schemeSelect.setSelectedIndex(0);
     schemeSelect.addActionListener(e -> {
         int choice = schemeSelect.getSelectedIndex();
         switch (choice) {
@@ -289,7 +316,7 @@ public class GUI extends JFrame {
     header.add(fineLabel);
     header.add(totalLabel);
 
-    String[] columns = {"Plate", "Entry", "Type", "SpotID","Level", "Duration", "Fine Status"};
+    String[] columns = {"Plate", "Entry", "Parking Type","Level", "Vehicle Type","Spot Id", "Duration", "Fine Status"};
     Object[][] data = FileManager.getReportData();
     
     DefaultTableModel model = new DefaultTableModel(data, columns) {
@@ -310,7 +337,7 @@ public class GUI extends JFrame {
         cl.show(main, "R");
     });
     historyBtn.addActionListener(e -> {
-        String[] histColumns = {"Plate", "level","SpotID","Type", "Vehicle", "Fee Paid", "Final Status"};
+        String[] histColumns = {"Plate", "Date","Parking Type","Level","Vehicle Type", "Spot ID ", "Fee Paid", "Final Status"};
         Object[][] histData = FileManager.getHistoryData();
         table.setModel(new DefaultTableModel(histData, histColumns));
         header.setBorder(BorderFactory.createTitledBorder("Past Transactions (Paid)"));

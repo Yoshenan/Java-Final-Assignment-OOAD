@@ -3,17 +3,18 @@ public class Vehicle {
     
     String plateNumber;
     double entryTime;
+    String entryDay;
+    String exitDay;
     double exitTime;
     double duration;
-    boolean isHavingCard = true; 
+    
 
 
     public Vehicle() {
     }
 
-    public Vehicle(String plateNumber, boolean isHavingCard) {
+    public Vehicle(String plateNumber) {
         this.plateNumber = plateNumber;
-        this.isHavingCard = isHavingCard;
     }
 
     public double getDuration() {
