@@ -39,15 +39,19 @@ public class Payment {
     public String paymentReceipt(){
         double rate = parking.getHourlyRate();
         double parkingFee = vehicle.duration * rate;
+        double fine = parking.totalRate - parkingFee;
 
         return "<html><pre>" +
            "========== PAYMENT RECEIPT ==========\n" +
            "Vehicle Plate  : " + vehicle.plateNumber + "\n" +
-           "Entry Time     : " + vehicle.entryTime + " hours\n" +
-           "Exit Time      : " + vehicle.exitTime + " hours\n" +
+           "Entry Time     : " + vehicle.entryTime + " hours\n" + 
+           "Entry Date : " + vehicle.entryDay + "\n"+
+           "Exit Time      : " + vehicle.exitTime + " hours\n" + 
+           "Exit Date: " + vehicle.exitDay + "\n"+
            "Duration       : " + vehicle.duration + " hours\n" +
            "-------------------------------------\n" +
            String.format("Parking Fee    : %.2f hrs x RM%.2f = RM%.2f\n", vehicle.duration,rate,parkingFee) +
+           String.format("Fine applied    :  RM%.2f\n", fine) +
            "-------------------------------------\n" +
            String.format("Total Paid     : RM%.2f\n",parking.totalRate) +
            "Payment Method : " + paymentMethod + "\n" +

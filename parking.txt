@@ -1,3 +1,9 @@
 
-VQQ 9999,13.0,16/02,Handicapped,Car,Level 3,C04
-VMX 3939,11.0,18/02,Regular,Car,Level 1,A01
+VQQ 9999,13.0,16/02,Handicapped,Car,Level 3,C04,200.00,PAID(FINED)
+VMX 3939,11.0,18/02,Regular,Car,Level 1,A01,200.00,PAID(FINED)
+VNC 9998,11.0,19/02,Regular,Car,Level 2,A02,220.00,PAID(FINED)
+VLU 6565,12.0,20/2,Reserved,Car,Level 3,A01,240.00,PAID
+VQU 1117,8.0,22/06/2005,Compact,Motorcycle,Level 4,A03,112.50,PAID(FINED)
+VMX 6666,15.0,24/02,Handicapped,Suv/Truck,Level 2,B01,148.00,PAID(FINED)
+VAA 7879,8.0,26/02,Reserved,Suv/Truck,Level 1,B03,710.00,PAID(FINED)
+VSA 1111,11.0,29/01,Reserved,Suv/Truck,Level 1,C01,590.00,PAID(FINED)
